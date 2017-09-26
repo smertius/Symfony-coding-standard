@@ -83,6 +83,10 @@
         <type>error</type>
     </rule>
 
+   <rule ref="Symfony.Commenting.FunctionComment.Missing">
+         <severity>0</severity>
+    </rule>
+
     <rule ref="Symfony.Commenting.ClassComment.Blacklisted">
         <type>error</type>
     </rule>
