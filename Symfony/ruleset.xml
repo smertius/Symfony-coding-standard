@@ -76,22 +76,14 @@
     </rule>
 
     <rule ref="Symfony.Commenting.FunctionComment.Missing">
-        <type>error</type>
+        <severity>0</severity>
     </rule>
 
     <rule ref="Symfony.Commenting.ClassComment.Missing">
         <type>error</type>
     </rule>
 
-   <rule ref="Symfony.Commenting.FunctionComment.Missing">
-         <severity>0</severity>
-    </rule>
-
     <rule ref="Symfony.Commenting.ClassComment.Blacklisted">
-        <type>error</type>
-    </rule>
-
-    <rule ref="Symfony.Commenting.FunctionComment.MissingReturn">
         <type>error</type>
     </rule>
 
@@ -103,3 +95,4 @@
         <message>There should always be a description, followed by a blank line, before the tags of a class comment.</message>
     </rule>
 </ruleset>
+
