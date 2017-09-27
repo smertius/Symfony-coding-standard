@@ -76,7 +76,7 @@
     </rule>
 
     <rule ref="Symfony.Commenting.FunctionComment.Missing">
-        <type>error</type>
+        <severity>0</severity>
     </rule>
 
     <rule ref="Symfony.Commenting.ClassComment.Missing">
