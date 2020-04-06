@@ -1,15 +1,15 @@
 <?php
 /**
- * This file is part of the Symfony2-coding-standard (phpcs standard)
+ * This file is part of the Symfony-coding-standard (phpcs standard)
  *
  * PHP version 5
  *
  * @category PHP
- * @package  PHP_CodeSniffer-Symfony2
+ * @package  PHP_CodeSniffer-Symfony
  * @author   wicliff wolda <dev@bloody-wicked.com>
  * @license  http://spdx.org/licenses/MIT MIT License
  * @version  GIT: master
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 
 namespace Symfony\Sniffs\Arrays;
@@ -24,10 +24,10 @@ use PHP_CodeSniffer\Files\File;
  * trailing comma
  *
  * @category PHP
- * @package  PHP_CodeSniffer-Symfony2
+ * @package  PHP_CodeSniffer-Symfony
  * @author   wicliff wolda <dev@bloody-wicked.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 class MultiLineArrayCommaSniff implements Sniff
 {
@@ -74,7 +74,7 @@ class MultiLineArrayCommaSniff implements Sniff
             $closePtr = $open['bracket_closer'];
         }
 
-        if ($open['line'] <> $tokens[$closePtr]['line']) {
+        if ($open['line'] !== $tokens[$closePtr]['line']) {
             $arrayIsNotEmpty = $phpcsFile->findPrevious(
                 array(
                     T_WHITESPACE,
@@ -97,13 +97,27 @@ class MultiLineArrayCommaSniff implements Sniff
                     $lastCommaPtr++;
 
                     if ($tokens[$lastCommaPtr]['code'] !== T_WHITESPACE
+                        && $tokens[$lastCommaPtr]['code'] !== T_PHPCS_IGNORE
                         && $tokens[$lastCommaPtr]['code'] !== T_COMMENT
                     ) {
-                        $phpcsFile->addError(
+                        $fix = $phpcsFile->addFixableError(
                             'Add a comma after each item in a multi-line array',
                             $stackPtr,
                             'Invalid'
                         );
+
+                        if ($fix === true) {
+                            $ptr = $phpcsFile->findPrevious(
+                                array(T_WHITESPACE, T_COMMENT, T_PHPCS_IGNORE),
+                                $closePtr-1,
+                                $stackPtr,
+                                true
+                            );
+
+                            $phpcsFile->fixer->addContent($ptr, ',');
+                            $phpcsFile->fixer->endChangeset();
+                        }
+
                         break;
                     }
                 }

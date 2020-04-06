@@ -1,15 +1,15 @@
 <?php
 
 /**
- * This file is part of the Symfony2-coding-standard (phpcs standard)
+ * This file is part of the Symfony-coding-standard (phpcs standard)
  *
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 
 namespace Symfony\Sniffs\Classes;
@@ -25,10 +25,10 @@ use PHP_CodeSniffer\Files\File;
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 class PropertyDeclarationSniff implements Sniff
 {
@@ -51,6 +51,7 @@ class PropertyDeclarationSniff implements Sniff
     {
         return array(
             T_CLASS,
+            T_ANON_CLASS
         );
     }
 
@@ -81,17 +82,24 @@ class PropertyDeclarationSniff implements Sniff
         $wantedTokens = array(
             T_PUBLIC,
             T_PROTECTED,
-            T_PRIVATE
+            T_PRIVATE,
+            T_ANON_CLASS
         );
 
         while ($scope) {
+            if (T_ANON_CLASS === $tokens[$scope]['code']) {
+                $scope = $tokens[$scope]['scope_closer'];
+                continue;
+            }
             $scope = $phpcsFile->findNext(
                 $wantedTokens,
                 $scope + 1,
                 $end
             );
 
-            if ($scope && $tokens[$scope + 2]['code'] === T_VARIABLE) {
+            if ($scope && $tokens[$scope + 2]['code'] === T_VARIABLE
+                && $tokens[$scope]['code'] !== T_ANON_CLASS
+            ) {
                 $phpcsFile->addError(
                     'Declare class properties before methods',
                     $scope,

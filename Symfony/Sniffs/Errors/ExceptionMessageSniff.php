@@ -1,15 +1,15 @@
 <?php
 
 /**
- * This file is part of the Symfony2-coding-standard (phpcs standard)
+ * This file is part of the Symfony-coding-standard (phpcs standard)
  *
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 
 namespace Symfony\Sniffs\Errors;
@@ -22,7 +22,7 @@ use PHP_CodeSniffer\Sniffs\Sniff;
  * Checks whether functions are defined on one line.
  *
  * @category PHP
- * @package  Symfony2-coding-standard
+ * @package  Symfony-coding-standard
  * @author   wicliff wolda <wicliff.wolda@gmail.com>
  * @license  http://spdx.org/licenses/MIT MIT License
  * @link     http://pear.php.net/package/PHP_CodeSniffer
@@ -31,6 +31,8 @@ class ExceptionMessageSniff implements Sniff
 {
     /**
      * Registers the tokens that this sniff wants to listen for.
+     *
+     * @return array
      */
     public function register()
     {
@@ -43,11 +45,9 @@ class ExceptionMessageSniff implements Sniff
      * Called when one of the token types that this sniff is listening for
      * is found.
      *
-     * @param \PHP_CodeSniffer\Files\File $phpcsFile The PHP_CodeSniffer file where the
-     *                                               token was found.
-     * @param int                         $stackPtr  The position in the PHP_CodeSniffer
-     *                                               file's token stack where the token
-     *                                               was found.
+     * @param File $phpcsFile The file where the token was found.
+     * @param int  $stackPtr  The position of the current token
+     *                        in the stack passed in $tokens.
      *
      * @return void|int Optionally returns a stack pointer. The sniff will not be
      *                  called again on the current file until the returned stack
@@ -59,8 +59,24 @@ class ExceptionMessageSniff implements Sniff
         $tokens = $phpcsFile->getTokens();
         $opener = $phpcsFile->findNext(T_OPEN_PARENTHESIS, $stackPtr);
 
-        if ($phpcsFile->findNext(T_STRING_CONCAT, $tokens[$opener]['parenthesis_opener'], $tokens[$opener]['parenthesis_closer'])) {
-            $error = 'Exception and error message strings must be concatenated using sprintf';
+        // No parenthesis found after the throw, no additional check required
+        if ($opener === false) {
+            return;
+        }
+
+        // check the content of the found parenthesis,
+        // only if it is in the same statement as the throw
+        $endOfStatement = $phpcsFile->findNext(T_SEMICOLON, $stackPtr);
+        if (($endOfStatement > $opener)
+            && $phpcsFile->findNext(
+                T_STRING_CONCAT,
+                $tokens[$opener]['parenthesis_opener'],
+                $tokens[$opener]['parenthesis_closer']
+            )
+        ) {
+            $error = 'Exception and error message strings must be ';
+            $error .= 'concatenated using sprintf';
+
             $phpcsFile->addError($error, $stackPtr, 'Invalid');
         }
     }

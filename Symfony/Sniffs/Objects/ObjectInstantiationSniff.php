@@ -1,15 +1,15 @@
 <?php
 
 /**
- * This file is part of the Symfony2-coding-standard (phpcs standard)
+ * This file is part of the Symfony-coding-standard (phpcs standard)
  *
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 
 namespace Symfony\Sniffs\Objects;
@@ -25,10 +25,10 @@ use PHP_CodeSniffer\Files\File;
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 class ObjectInstantiationSniff implements Sniff
 {
@@ -72,16 +72,31 @@ class ObjectInstantiationSniff implements Sniff
             T_VARIABLE,
             T_STATIC,
             T_SELF,
+            T_DOUBLE_COLON,
+            T_OBJECT_OPERATOR,
+            T_OPEN_SQUARE_BRACKET,
+            T_CLOSE_SQUARE_BRACKET,
         );
 
         $object = $stackPtr;
         $line   = $tokens[$object]['line'];
 
+        if (T_ANON_CLASS === $tokens[$object + 2]['code']) {
+            if ($tokens[$object + 3]['code'] !== T_OPEN_PARENTHESIS) {
+                $phpcsFile->addError(
+                    'Use parentheses when instantiating classes',
+                    $stackPtr,
+                    'Invalid'
+                );
+            }
+            return;
+        }
+
         while ($object && $tokens[$object]['line'] === $line) {
             $object = $phpcsFile->findNext($allowed, $object + 1);
 
             if ($tokens[$object]['line'] === $line
-                && !in_array($tokens[$object + 1]['code'], $allowed)
+                && !in_array($tokens[$object + 1]['code'], $allowed, true)
             ) {
                 if ($tokens[$object + 1]['code'] !== T_OPEN_PARENTHESIS) {
                     $phpcsFile->addError(

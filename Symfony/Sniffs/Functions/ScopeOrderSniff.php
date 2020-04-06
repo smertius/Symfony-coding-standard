@@ -1,15 +1,15 @@
 <?php
 
 /**
- * This file is part of the Symfony2-coding-standard (phpcs standard)
+ * This file is part of the Symfony-coding-standard (phpcs standard)
  *
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 
 namespace Symfony\Sniffs\Functions;
@@ -25,10 +25,10 @@ use PHP_CodeSniffer\Files\File;
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 class ScopeOrderSniff implements Sniff
 {
@@ -52,6 +52,7 @@ class ScopeOrderSniff implements Sniff
         return array(
             T_CLASS,
             T_INTERFACE,
+            T_ANON_CLASS,
         );
     }
 
@@ -89,10 +90,18 @@ class ScopeOrderSniff implements Sniff
             }
 
             $function = $phpcsFile->findNext(
-                T_FUNCTION,
+                array(
+                    T_ANON_CLASS,
+                    T_FUNCTION,
+                ),
                 $function + 1,
                 $end
             );
+
+            if (T_ANON_CLASS === $tokens[$function]['code']) {
+                $function = $tokens[$function]['scope_closer'];
+                continue;
+            }
 
             if (isset($tokens[$function]['parenthesis_opener'])) {
                 $scope = $phpcsFile->findPrevious($scopes, $function -1, $stackPtr);
@@ -106,10 +115,11 @@ class ScopeOrderSniff implements Sniff
                     && $name
                     && !in_array(
                         $tokens[$name]['content'],
-                        $whitelisted
+                        $whitelisted,
+                        true
                     )
                 ) {
-                    $current = array_keys($scopes,  $tokens[$scope]['code']);
+                    $current = array_keys($scopes,  $tokens[$scope]['code'], true);
                     $current = $current[0];
 
                     $error = 'Declare public methods first,'

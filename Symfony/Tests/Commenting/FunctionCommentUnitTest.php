@@ -25,7 +25,7 @@ use PHP_CodeSniffer\Tests\Standards\AbstractSniffUnitTest;
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
+ * @package  Symfony-coding-standard
  * @author   Authors <Symfony2-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
  * @link     https://github.com/djoos/Symfony2-coding-standard
@@ -44,6 +44,8 @@ class FunctionCommentUnitTest extends AbstractSniffUnitTest
     {
         return array(
             5 => 1,
+            45 => 1,
+            52 => 1,
         );
     }
 
@@ -53,7 +55,7 @@ class FunctionCommentUnitTest extends AbstractSniffUnitTest
      * The key of the array should represent the line number and the value
      * should represent the number of warnings that should occur on that line.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     protected function getWarningList()
     {

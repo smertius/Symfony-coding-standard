@@ -1,15 +1,15 @@
 <?php
 
 /**
- * This file is part of the Symfony2-coding-standard (phpcs standard)
+ * This file is part of the Symfony-coding-standard (phpcs standard)
  *
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 
 /**
@@ -20,16 +20,25 @@
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 namespace Symfony\Sniffs\Formatting;
 
 use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Files\File;
 
+/**
+ * BlankLineBeforeReturnSniff.
+ *
+ * @category PHP
+ * @package  PHP_CodeSniffer-Symfony
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
+ * @license  http://spdx.org/licenses/MIT MIT License
+ * @link     https://github.com/djoos/Symfony-coding-standard
+ */
 class BlankLineBeforeReturnSniff implements Sniff
 {
     /**
@@ -67,13 +76,16 @@ class BlankLineBeforeReturnSniff implements Sniff
         $current         = $stackPtr;
         $previousLine    = $tokens[$stackPtr]['line'] - 1;
         $prevLineTokens  = array();
+        $spaceTokens     = [
+            'T_WHITESPACE',
+            'T_COMMENT',
+            'T_DOC_COMMENT_CLOSE_TAG',
+            'T_DOC_COMMENT_WHITESPACE',
+        ];
 
         while ($current >= 0 && $tokens[$current]['line'] >= $previousLine) {
-            if ($tokens[$current]['line'] == $previousLine
-                && $tokens[$current]['type'] !== 'T_WHITESPACE'
-                && $tokens[$current]['type'] !== 'T_COMMENT'
-                && $tokens[$current]['type'] !== 'T_DOC_COMMENT_CLOSE_TAG'
-                && $tokens[$current]['type'] !== 'T_DOC_COMMENT_WHITESPACE'
+            if ($tokens[$current]['line'] === $previousLine
+                && !in_array($tokens[$current]['type'], $spaceTokens, true)
             ) {
                 $prevLineTokens[] = $tokens[$current]['type'];
             }
@@ -85,14 +97,25 @@ class BlankLineBeforeReturnSniff implements Sniff
             || $prevLineTokens[0] === 'T_COLON')
         ) {
             return;
-        } else if (count($prevLineTokens) > 0) {
-            $phpcsFile->addError(
-                'Missing blank line before return statement',
-                $stackPtr,
-                'Invalid'
-            );
         }
 
-        return;
+        if (count($prevLineTokens) > 0) {
+            $fix = $phpcsFile->addFixableError(
+                'Missing blank line before return statement',
+                $stackPtr,
+                'MissedBlankLineBeforeReturn'
+            );
+
+            if ($fix === true) {
+                $phpcsFile->fixer->beginChangeset();
+                $i = 1;
+                while ($tokens[$stackPtr-$i]['type'] === 'T_WHITESPACE') {
+                    $i++;
+                }
+
+                $phpcsFile->fixer->addNewline($stackPtr-$i);
+                $phpcsFile->fixer->endChangeset();
+            }
+        }
     }
 }

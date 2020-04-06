@@ -1,24 +1,24 @@
 <?php
 
 /**
- * This file is part of the Symfony2-coding-standard (phpcs standard)
+ * This file is part of the Symfony-coding-standard (phpcs standard)
  *
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 
 namespace Symfony\Sniffs\Commenting;
 
 use PHP_CodeSniffer\Files\File;
-use PHP_CodeSniffer\Standards\PEAR\Sniffs\Commenting\FunctionCommentSniff as PearFunctionCommentSniff;
+use PHP_CodeSniffer\Standards\PEAR\Sniffs\Commenting\FunctionCommentSniff as Sniff;
 
 /**
- * Symfony2 standard customization to PEARs FunctionCommentSniff.
+ * Symfony standard customization to PEARs FunctionCommentSniff.
  *
  * Verifies that :
  * <ul>
@@ -30,12 +30,12 @@ use PHP_CodeSniffer\Standards\PEAR\Sniffs\Commenting\FunctionCommentSniff as Pea
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class FunctionCommentSniff extends PearFunctionCommentSniff
+class FunctionCommentSniff extends Sniff
 {
     /**
      * Process the return comment of this function comment.
@@ -99,14 +99,13 @@ class FunctionCommentSniff extends PearFunctionCommentSniff
      */
     protected function isInheritDoc(File $phpcsFile, $stackPtr)
     {
-        $tokens = $phpcsFile->getTokens();
-
         $start = $phpcsFile->findPrevious(T_DOC_COMMENT_OPEN_TAG, $stackPtr - 1);
         $end = $phpcsFile->findNext(T_DOC_COMMENT_CLOSE_TAG, $start);
 
-        $content = $phpcsFile->getTokensAsString($start, ($end - $start));
+        $content = $phpcsFile->getTokensAsString($start, $end - $start);
 
-        return preg_match('#{@inheritdoc}#i', $content) === 1;
+        return
+            preg_match('#({@inheritdoc}|(?<!{)@inheritdoc(?!}))#i', $content) === 1;
     }
 
     /**
@@ -125,8 +124,6 @@ class FunctionCommentSniff extends PearFunctionCommentSniff
         $stackPtr,
         $commentStart
     ) {
-        $tokens = $phpcsFile->getTokens();
-
         if ($this->isInheritDoc($phpcsFile, $stackPtr)) {
             return;
         }

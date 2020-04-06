@@ -1,9 +1,9 @@
 {
     "name": "escapestudios/symfony2-coding-standard",
-    "type": "coding-standard",
+    "type": "phpcodesniffer-standard",
     "description": "CodeSniffer ruleset for the Symfony 2+ coding standard",
     "keywords": ["Symfony2", "Symfony", "coding standard", "phpcs"],
-    "homepage": "https://github.com/djoos/Symfony2-coding-standard",
+    "homepage": "https://github.com/djoos/Symfony-coding-standard",
     "license": "MIT",
     "authors": [
         {
@@ -12,7 +12,7 @@
         },
         {
             "name": "Community contributors",
-            "homepage": "https://github.com/djoos/Symfony2-coding-standard/graphs/contributors"
+            "homepage": "https://github.com/djoos/Symfony-coding-standard/graphs/contributors"
         }
     ],
     "extra": {
@@ -20,8 +20,17 @@
             "dev-master": "3.x-dev"
         }
     },
-    "minimum-stability": "dev",
+    "support" : {
+        "source": "https://github.com/djoos/Symfony-coding-standard",
+        "issues": "https://github.com/djoos/Symfony-coding-standard/issues"
+    },
     "require": {
-        "squizlabs/php_codesniffer": "3.*"
+        "squizlabs/php_codesniffer": "^3.3.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.0 || ^6.0 || ^7.0"
+    },
+    "conflict": {
+        "squizlabs/php_codesniffer": "<3 || >=4"
     }
 }

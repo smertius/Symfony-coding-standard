@@ -1,15 +1,15 @@
 <?php
 
 /**
- * This file is part of the Symfony2-coding-standard (phpcs standard)
+ * This file is part of the Symfony-coding-standard (phpcs standard)
  *
  * PHP version 5
  *
  * @category PHP
- * @package  Symfony2-coding-standard
- * @author   Authors <Symfony2-coding-standard@djoos.github.com>
+ * @package  Symfony-coding-standard
+ * @author   Authors <Symfony-coding-standard@djoos.github.com>
  * @license  http://spdx.org/licenses/MIT MIT License
- * @link     https://github.com/djoos/Symfony2-coding-standard
+ * @link     https://github.com/djoos/Symfony-coding-standard
  */
 
 namespace Symfony\Sniffs\Errors;
@@ -22,7 +22,7 @@ use PHP_CodeSniffer\Sniffs\Sniff;
  * Checks whether E_USER_DEPRECATED errors are silenced by default.
  *
  * @category PHP
- * @package  Symfony2-coding-standard
+ * @package  Symfony-coding-standard
  * @author   wicliff wolda <wicliff.wolda@gmail.com>
  * @license  http://spdx.org/licenses/MIT MIT License
  * @link     http://pear.php.net/package/PHP_CodeSniffer
@@ -31,6 +31,8 @@ class UserDeprecatedSniff implements Sniff
 {
     /**
      * Registers the tokens that this sniff wants to listen for.
+     *
+     * @return array
      */
     public function register()
     {
@@ -43,11 +45,9 @@ class UserDeprecatedSniff implements Sniff
      * Called when one of the token types that this sniff is listening for
      * is found.
      *
-     * @param \PHP_CodeSniffer\Files\File $phpcsFile The PHP_CodeSniffer file where the
-     *                                               token was found.
-     * @param int                         $stackPtr  The position in the PHP_CodeSniffer
-     *                                               file's token stack where the token
-     *                                               was found.
+     * @param File $phpcsFile The file where the token was found.
+     * @param int  $stackPtr  The position of the current token
+     *                        in the stack passed in $tokens.
      *
      * @return void|int Optionally returns a stack pointer. The sniff will not be
      *                  called again on the current file until the returned stack
@@ -73,14 +73,28 @@ class UserDeprecatedSniff implements Sniff
                 break;
             }
 
-            if ($tokens[$string]['content'] === 'E_USER_DEPRECATED' && '@' !== $tokens[$stackPtr -1]['content']) {
-                $error = 'Calls to trigger_error with type E_USER_DEPRECATED must be switched to opt-in via @ operator';
-                $phpcsFile->addError($error, $stackPtr, 'Invalid');
+            $opener = $string + 1;
 
-                break;
-            } else {
-                $opener = $string + 1;
+            if ($tokens[$string]['content'] !== 'E_USER_DEPRECATED') {
+                continue;
             }
+
+            if ('@' === $tokens[$stackPtr -1]['content']) {
+                continue;
+            }
+
+            if ('@' === $tokens[$stackPtr - 2]['content']
+                && 'T_NS_SEPARATOR' === $tokens[$stackPtr - 1]['type']
+            ) {
+                continue;
+            }
+
+            $error = 'Calls to trigger_error with type E_USER_DEPRECATED ';
+            $error .= 'must be switched to opt-in via @ operator';
+
+            $phpcsFile->addError($error, $stackPtr, 'Invalid');
+
+            break;
         } while ($opener < $closer);
     }
 
