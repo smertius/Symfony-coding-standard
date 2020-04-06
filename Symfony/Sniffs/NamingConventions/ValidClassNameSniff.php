@@ -70,15 +70,15 @@ class ValidClassNameSniff implements Sniff
         $tokens   = $phpcsFile->getTokens();
         $line     = $tokens[$stackPtr]['line'];
 
-        while ($tokens[$stackPtr]['line'] == $line) {
+        while ($tokens[$stackPtr]['line'] === $line) {
 
             /*
              * Suffix interfaces with Interface;
              */
-            if ('T_INTERFACE' == $tokens[$stackPtr]['type']) {
+            if ('T_INTERFACE' === $tokens[$stackPtr]['type']) {
                 $name = $phpcsFile->findNext(T_STRING, $stackPtr);
 
-                if ($name && substr($tokens[$name]['content'], -9) != 'Interface') {
+                if ($name && substr($tokens[$name]['content'], -9) !== 'Interface') {
                     $phpcsFile->addError(
                         'Interface name is not suffixed with "Interface"',
                         $stackPtr,
@@ -91,10 +91,10 @@ class ValidClassNameSniff implements Sniff
             /*
              * Suffix traits with Trait;
              */
-            if ('T_TRAIT' == $tokens[$stackPtr]['type']) {
+            if ('T_TRAIT' === $tokens[$stackPtr]['type']) {
                 $name = $phpcsFile->findNext(T_STRING, $stackPtr);
 
-                if ($name && substr($tokens[$name]['content'], -5) != 'Trait') {
+                if ($name && substr($tokens[$name]['content'], -5) !== 'Trait') {
                     $phpcsFile->addError(
                         'Trait name is not suffixed with "Trait"',
                         $stackPtr,
@@ -107,17 +107,18 @@ class ValidClassNameSniff implements Sniff
             /*
              * Suffix exceptions with Exception;
              */
-            if ('T_EXTENDS' == $tokens[$stackPtr]['type']) {
+            if ('T_EXTENDS' === $tokens[$stackPtr]['type']) {
                 $extend = $phpcsFile->findNext(T_STRING, $stackPtr);
+                $class = $phpcsFile->findPrevious(T_CLASS, $stackPtr);
 
                 if ($extend
-                    && substr($tokens[$extend]['content'], -9) == 'Exception'
+                    && false !== $class
+                    && substr($tokens[$extend]['content'], -9) === 'Exception'
                 ) {
-                    $class = $phpcsFile->findPrevious(T_CLASS, $stackPtr);
                     $name = $phpcsFile->findNext(T_STRING, $class);
 
                     if ($name
-                        && substr($tokens[$name]['content'], -9) != 'Exception'
+                        && substr($tokens[$name]['content'], -9) !== 'Exception'
                     ) {
                         $phpcsFile->addError(
                             'Exception name is not suffixed with "Exception"',
@@ -132,14 +133,13 @@ class ValidClassNameSniff implements Sniff
             /*
              * Prefix abstract classes with Abstract.
              */
-            if ('T_ABSTRACT' == $tokens[$stackPtr]['type']) {
+            if ('T_ABSTRACT' === $tokens[$stackPtr]['type']) {
                 $name = $phpcsFile->findNext(T_STRING, $stackPtr);
                 $function = $phpcsFile->findNext(T_FUNCTION, $stackPtr);
-                
+
                 // making sure we're not dealing with an abstract function
-                if ($name && (is_null($function)
-                    || $name < $function)
-                    && substr($tokens[$name]['content'], 0, 8) != 'Abstract'
+                if ((null === $function|| $name < $function)
+                    && strpos($tokens[$name]['content'], 'Abstract') !== 0
                 ) {
                     $phpcsFile->addError(
                         'Abstract class name is not prefixed with "Abstract"',
@@ -149,10 +149,6 @@ class ValidClassNameSniff implements Sniff
                 }
                 break;
             }
-
-            $stackPtr++;
         }
-
-        return;
     }
 }

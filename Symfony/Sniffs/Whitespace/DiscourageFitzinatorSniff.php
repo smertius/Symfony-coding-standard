@@ -18,9 +18,9 @@ use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Files\File;
 
 /**
- * CommaSpacingSniff.
+ * DiscourageFitzinatorSniff.
  *
- * Throws warnings if comma isn't followed by a whitespace.
+ * Throws warnings if a file contains trailing whitespace.
  *
  * PHP version 5
  *
@@ -30,7 +30,7 @@ use PHP_CodeSniffer\Files\File;
  * @license  http://spdx.org/licenses/MIT MIT License
  * @link     https://github.com/djoos/Symfony-coding-standard
  */
-class CommaSpacingSniff implements Sniff
+class DiscourageFitzinatorSniff implements Sniff
 {
     /**
      * A list of tokenizers this sniff supports.
@@ -38,8 +38,11 @@ class CommaSpacingSniff implements Sniff
      * @var array
      */
     public $supportedTokenizers = array(
-        'PHP',
-    );
+                                   'PHP',
+                                   'JS',
+                                   'CSS',
+                                  );
+
 
     /**
      * Returns an array of tokens this test wants to listen for.
@@ -48,35 +51,36 @@ class CommaSpacingSniff implements Sniff
      */
     public function register()
     {
-        return array(
-            T_COMMA,
-        );
+        return array(T_WHITESPACE);
 
     }
 
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param File $phpcsFile The file being scanned.
-     * @param int  $stackPtr  The position of the current token
-     *                        in the stack passed in $tokens.
+     * @param File $phpcsFile All the tokens found in the document.
+     * @param int  $stackPtr  The position of the current token in
+     *                        the stack passed in $tokens.
      *
      * @return void
      */
     public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
-        $line   = $tokens[$stackPtr]['line'];
 
-        if ($tokens[$stackPtr + 1]['line'] === $line
-            && $tokens[$stackPtr + 1]['code'] !== T_WHITESPACE
+        // Make sure this is trailing whitespace.
+        $line = $tokens[$stackPtr]['line'];
+        if (($stackPtr < count($tokens) - 1)
+            && $tokens[$stackPtr + 1]['line'] === $line
         ) {
-            $phpcsFile->addError(
-                'Add a single space after each comma delimiter',
-                $stackPtr,
-                'Invalid'
-            );
+            return;
         }
 
+        if (strpos($tokens[$stackPtr]['content'], "\n") > 0
+            || strpos($tokens[$stackPtr]['content'], "\r") > 0
+        ) {
+            $warning = 'Please trim any trailing whitespace';
+            $phpcsFile->addWarning($warning, $stackPtr, 'Invalid');
+        }
     }
 }

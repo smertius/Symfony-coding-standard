@@ -43,8 +43,10 @@ class ScopeOrderUnitTest extends AbstractSniffUnitTest
     public function getErrorList()
     {
         return array(
-            7 => 1,
-            9 => 1,
+            7  => 1,
+            9  => 1,
+            15 => 1,
+            17 => 1,
         );
     }
 
@@ -54,7 +56,7 @@ class ScopeOrderUnitTest extends AbstractSniffUnitTest
      * The key of the array should represent the line number and the value
      * should represent the number of errors that should occur on that line.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getWarningList()
     {

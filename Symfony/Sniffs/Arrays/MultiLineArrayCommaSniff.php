@@ -74,7 +74,7 @@ class MultiLineArrayCommaSniff implements Sniff
             $closePtr = $open['bracket_closer'];
         }
 
-        if ($open['line'] <> $tokens[$closePtr]['line']) {
+        if ($open['line'] !== $tokens[$closePtr]['line']) {
             $arrayIsNotEmpty = $phpcsFile->findPrevious(
                 array(
                     T_WHITESPACE,
@@ -97,13 +97,27 @@ class MultiLineArrayCommaSniff implements Sniff
                     $lastCommaPtr++;
 
                     if ($tokens[$lastCommaPtr]['code'] !== T_WHITESPACE
+                        && $tokens[$lastCommaPtr]['code'] !== T_PHPCS_IGNORE
                         && $tokens[$lastCommaPtr]['code'] !== T_COMMENT
                     ) {
-                        $phpcsFile->addError(
+                        $fix = $phpcsFile->addFixableError(
                             'Add a comma after each item in a multi-line array',
                             $stackPtr,
                             'Invalid'
                         );
+
+                        if ($fix === true) {
+                            $ptr = $phpcsFile->findPrevious(
+                                array(T_WHITESPACE, T_COMMENT, T_PHPCS_IGNORE),
+                                $closePtr-1,
+                                $stackPtr,
+                                true
+                            );
+
+                            $phpcsFile->fixer->addContent($ptr, ',');
+                            $phpcsFile->fixer->endChangeset();
+                        }
+
                         break;
                     }
                 }

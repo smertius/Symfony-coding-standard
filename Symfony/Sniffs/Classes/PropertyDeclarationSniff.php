@@ -51,6 +51,7 @@ class PropertyDeclarationSniff implements Sniff
     {
         return array(
             T_CLASS,
+            T_ANON_CLASS
         );
     }
 
@@ -81,17 +82,24 @@ class PropertyDeclarationSniff implements Sniff
         $wantedTokens = array(
             T_PUBLIC,
             T_PROTECTED,
-            T_PRIVATE
+            T_PRIVATE,
+            T_ANON_CLASS
         );
 
         while ($scope) {
+            if (T_ANON_CLASS === $tokens[$scope]['code']) {
+                $scope = $tokens[$scope]['scope_closer'];
+                continue;
+            }
             $scope = $phpcsFile->findNext(
                 $wantedTokens,
                 $scope + 1,
                 $end
             );
 
-            if ($scope && $tokens[$scope + 2]['code'] === T_VARIABLE) {
+            if ($scope && $tokens[$scope + 2]['code'] === T_VARIABLE
+                && $tokens[$scope]['code'] !== T_ANON_CLASS
+            ) {
                 $phpcsFile->addError(
                     'Declare class properties before methods',
                     $scope,

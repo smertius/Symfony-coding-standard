@@ -14,7 +14,8 @@
 
 namespace Symfony\Sniffs\Commenting;
 
-use PHP_CodeSniffer\Standards\PEAR\Sniffs\Commenting\ClassCommentSniff as PearClassCommentSniff;
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Standards\PEAR\Sniffs\Commenting\ClassCommentSniff as Sniff;
 
 /**
  * Parses and verifies the doc comments for classes.
@@ -38,7 +39,7 @@ use PHP_CodeSniffer\Standards\PEAR\Sniffs\Commenting\ClassCommentSniff as PearCl
  * @license  http://spdx.org/licenses/MIT MIT License
  * @link     http://pear.php.net/package/PHP_CodeSniffer
  */
-class ClassCommentSniff extends PearClassCommentSniff
+class ClassCommentSniff extends Sniff
 {
     /**
      * Tags in correct order and related info.
@@ -93,6 +94,11 @@ class ClassCommentSniff extends PearClassCommentSniff
         ),
     );
 
+    /**
+     * Blacklisted tags
+     *
+     * @var array<string>
+     */
     protected $blacklist = array(
         '@package',
         '@subpackage',
@@ -101,10 +107,10 @@ class ClassCommentSniff extends PearClassCommentSniff
     /**
      * Processes each tag and raise an error if there are blacklisted tags.
      *
-     * @param \PHP_CodeSniffer\Files\File $phpcsFile    The file being scanned.
-     * @param int                         $stackPtr     The position of the current token
-     *                                                  in the stack passed in $tokens.
-     * @param int                         $commentStart Position in the stack where the comment started.
+     * @param File $phpcsFile    The file where the token was found.
+     * @param int  $stackPtr     The position of the current token
+     *                           in the stack passed in $tokens.
+     * @param int  $commentStart Position in the stack where the comment started.
      *
      * @return void
      */
@@ -115,7 +121,7 @@ class ClassCommentSniff extends PearClassCommentSniff
         foreach ($tokens[$commentStart]['comment_tags'] as $tag) {
             $name = $tokens[$tag]['content'];
 
-            if (in_array($name, $this->blacklist)) {
+            if (in_array($name, $this->blacklist, true)) {
                 $error = sprintf('The %s tag is not allowed.', $name);
                 $phpcsFile->addError($error, $tag, 'Blacklisted');
             }

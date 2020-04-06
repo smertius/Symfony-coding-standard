@@ -16,11 +16,12 @@ namespace Symfony\Sniffs\Whitespace;
 
 use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Util\Tokens;
 
 /**
- * DiscourageFitzinatorSniff.
+ * BinaryOperatorSpacingSniff.
  *
- * Throws warnings if a file contains trailing whitespace.
+ * Throws warnings if a binary operator isn't surrounded with whitespace.
  *
  * PHP version 5
  *
@@ -30,7 +31,7 @@ use PHP_CodeSniffer\Files\File;
  * @license  http://spdx.org/licenses/MIT MIT License
  * @link     https://github.com/djoos/Symfony-coding-standard
  */
-class DiscourageFitzinatorSniff implements Sniff
+class BinaryOperatorSpacingSniff implements Sniff
 {
     /**
      * A list of tokenizers this sniff supports.
@@ -39,10 +40,7 @@ class DiscourageFitzinatorSniff implements Sniff
      */
     public $supportedTokenizers = array(
                                    'PHP',
-                                   'JS',
-                                   'CSS',
                                   );
-
 
     /**
      * Returns an array of tokens this test wants to listen for.
@@ -51,16 +49,16 @@ class DiscourageFitzinatorSniff implements Sniff
      */
     public function register()
     {
-        return array(T_WHITESPACE);
+        return Tokens::$comparisonTokens;
 
     }
 
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param File $phpcsFile All the tokens found in the document.
-     * @param int  $stackPtr  The position of the current token in
-     *                        the stack passed in $tokens.
+     * @param File $phpcsFile The file being scanned.
+     * @param int  $stackPtr  The position of the current token
+     *                        in the stack passed in $tokens.
      *
      * @return void
      */
@@ -68,19 +66,24 @@ class DiscourageFitzinatorSniff implements Sniff
     {
         $tokens = $phpcsFile->getTokens();
 
-        // Make sure this is trailing whitespace.
-        $line = $tokens[$stackPtr]['line'];
-        if (($stackPtr < count($tokens) - 1)
-            && $tokens[($stackPtr + 1)]['line'] === $line
+        if ($tokens[$stackPtr -1]['code'] !== T_WHITESPACE
+            || $tokens[$stackPtr +1]['code'] !== T_WHITESPACE
         ) {
-            return;
-        }
+            $fix = $phpcsFile->addFixableError(
+                'Add a single space around binary operators',
+                $stackPtr,
+                'Invalid'
+            );
 
-        if (strpos($tokens[$stackPtr]['content'], "\n") > 0
-            || strpos($tokens[$stackPtr]['content'], "\r") > 0
-        ) {
-            $warning = 'Please trim any trailing whitespace';
-            $phpcsFile->addWarning($warning, $stackPtr, 'Invalid');
+            if ($fix === true) {
+                if ($tokens[$stackPtr -1]['code'] !== T_WHITESPACE) {
+                    $phpcsFile->fixer->addContentBefore($stackPtr, ' ');
+                }
+
+                if ($tokens[$stackPtr +1]['code'] !== T_WHITESPACE) {
+                    $phpcsFile->fixer->addContent($stackPtr, ' ');
+                }
+            }
         }
     }
 }

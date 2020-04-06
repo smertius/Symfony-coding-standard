@@ -52,6 +52,7 @@ class ScopeOrderSniff implements Sniff
         return array(
             T_CLASS,
             T_INTERFACE,
+            T_ANON_CLASS,
         );
     }
 
@@ -89,10 +90,18 @@ class ScopeOrderSniff implements Sniff
             }
 
             $function = $phpcsFile->findNext(
-                T_FUNCTION,
+                array(
+                    T_ANON_CLASS,
+                    T_FUNCTION,
+                ),
                 $function + 1,
                 $end
             );
+
+            if (T_ANON_CLASS === $tokens[$function]['code']) {
+                $function = $tokens[$function]['scope_closer'];
+                continue;
+            }
 
             if (isset($tokens[$function]['parenthesis_opener'])) {
                 $scope = $phpcsFile->findPrevious($scopes, $function -1, $stackPtr);
@@ -106,10 +115,11 @@ class ScopeOrderSniff implements Sniff
                     && $name
                     && !in_array(
                         $tokens[$name]['content'],
-                        $whitelisted
+                        $whitelisted,
+                        true
                     )
                 ) {
-                    $current = array_keys($scopes,  $tokens[$scope]['code']);
+                    $current = array_keys($scopes,  $tokens[$scope]['code'], true);
                     $current = $current[0];
 
                     $error = 'Declare public methods first,'

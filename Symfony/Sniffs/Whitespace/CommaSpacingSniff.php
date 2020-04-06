@@ -16,12 +16,11 @@ namespace Symfony\Sniffs\Whitespace;
 
 use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Files\File;
-use PHP_CodeSniffer\Util\Tokens;
 
 /**
- * SBinaryOperatorSpacingSniff.
+ * CommaSpacingSniff.
  *
- * Throws warnings if a binary operator isn't surrounded with whitespace.
+ * Throws warnings if comma isn't followed by a whitespace.
  *
  * PHP version 5
  *
@@ -31,7 +30,7 @@ use PHP_CodeSniffer\Util\Tokens;
  * @license  http://spdx.org/licenses/MIT MIT License
  * @link     https://github.com/djoos/Symfony-coding-standard
  */
-class SBinaryOperatorSpacingSniff implements Sniff
+class CommaSpacingSniff implements Sniff
 {
     /**
      * A list of tokenizers this sniff supports.
@@ -39,8 +38,8 @@ class SBinaryOperatorSpacingSniff implements Sniff
      * @var array
      */
     public $supportedTokenizers = array(
-                                   'PHP',
-                                  );
+        'PHP',
+    );
 
     /**
      * Returns an array of tokens this test wants to listen for.
@@ -49,7 +48,9 @@ class SBinaryOperatorSpacingSniff implements Sniff
      */
     public function register()
     {
-        return Tokens::$comparisonTokens;
+        return array(
+            T_COMMA,
+        );
 
     }
 
@@ -65,15 +66,20 @@ class SBinaryOperatorSpacingSniff implements Sniff
     public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
+        $line   = $tokens[$stackPtr]['line'];
 
-        if ($tokens[$stackPtr -1]['code'] !== T_WHITESPACE
-            || $tokens[$stackPtr +1]['code'] !== T_WHITESPACE
+        if ($tokens[$stackPtr + 1]['line'] === $line
+            && $tokens[$stackPtr + 1]['code'] !== T_WHITESPACE
         ) {
-            $phpcsFile->addError(
-                'Add a single space around binary operators',
+            $fix = $phpcsFile->addFixableError(
+                'Add a single space after each comma delimiter',
                 $stackPtr,
                 'Invalid'
             );
+
+            if ($fix === true) {
+                $phpcsFile->fixer->addContent($stackPtr, ' ');
+            }
         }
     }
 }

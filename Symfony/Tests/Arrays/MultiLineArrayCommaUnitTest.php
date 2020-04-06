@@ -43,12 +43,13 @@ class MultiLineArrayCommaUnitTest extends AbstractSniffUnitTest
     public function getErrorList()
     {
         return array(
-            11 => 1,
-            27 => 1,
-            43 => 1,
-            53 => 1,
-            74 => 1,
-            84 => 1,
+            11  => 1,
+            27  => 1,
+            43  => 1,
+            53  => 1,
+            74  => 1,
+            84  => 1,
+            106 => 1,
         );
     }
 
@@ -58,7 +59,7 @@ class MultiLineArrayCommaUnitTest extends AbstractSniffUnitTest
      * The key of the array should represent the line number and the value
      * should represent the number of errors that should occur on that line.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getWarningList()
     {

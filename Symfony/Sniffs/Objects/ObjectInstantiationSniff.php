@@ -72,16 +72,31 @@ class ObjectInstantiationSniff implements Sniff
             T_VARIABLE,
             T_STATIC,
             T_SELF,
+            T_DOUBLE_COLON,
+            T_OBJECT_OPERATOR,
+            T_OPEN_SQUARE_BRACKET,
+            T_CLOSE_SQUARE_BRACKET,
         );
 
         $object = $stackPtr;
         $line   = $tokens[$object]['line'];
 
+        if (T_ANON_CLASS === $tokens[$object + 2]['code']) {
+            if ($tokens[$object + 3]['code'] !== T_OPEN_PARENTHESIS) {
+                $phpcsFile->addError(
+                    'Use parentheses when instantiating classes',
+                    $stackPtr,
+                    'Invalid'
+                );
+            }
+            return;
+        }
+
         while ($object && $tokens[$object]['line'] === $line) {
             $object = $phpcsFile->findNext($allowed, $object + 1);
 
             if ($tokens[$object]['line'] === $line
-                && !in_array($tokens[$object + 1]['code'], $allowed)
+                && !in_array($tokens[$object + 1]['code'], $allowed, true)
             ) {
                 if ($tokens[$object + 1]['code'] !== T_OPEN_PARENTHESIS) {
                     $phpcsFile->addError(

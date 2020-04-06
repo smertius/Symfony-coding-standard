@@ -45,8 +45,8 @@ class TypeHintingUnitTest extends AbstractSniffUnitTest
         return array(
             6 => 1,
             11 => 1,
-            17 => 1,
-            18 => 1,
+            22 => 1,
+            23 => 1,
         );
     }
 
@@ -56,7 +56,7 @@ class TypeHintingUnitTest extends AbstractSniffUnitTest
      * The key of the array should represent the line number and the value
      * should represent the number of errors that should occur on that line.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getWarningList()
     {

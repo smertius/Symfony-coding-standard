@@ -76,13 +76,16 @@ class BlankLineBeforeReturnSniff implements Sniff
         $current         = $stackPtr;
         $previousLine    = $tokens[$stackPtr]['line'] - 1;
         $prevLineTokens  = array();
+        $spaceTokens     = [
+            'T_WHITESPACE',
+            'T_COMMENT',
+            'T_DOC_COMMENT_CLOSE_TAG',
+            'T_DOC_COMMENT_WHITESPACE',
+        ];
 
         while ($current >= 0 && $tokens[$current]['line'] >= $previousLine) {
-            if ($tokens[$current]['line'] == $previousLine
-                && $tokens[$current]['type'] !== 'T_WHITESPACE'
-                && $tokens[$current]['type'] !== 'T_COMMENT'
-                && $tokens[$current]['type'] !== 'T_DOC_COMMENT_CLOSE_TAG'
-                && $tokens[$current]['type'] !== 'T_DOC_COMMENT_WHITESPACE'
+            if ($tokens[$current]['line'] === $previousLine
+                && !in_array($tokens[$current]['type'], $spaceTokens, true)
             ) {
                 $prevLineTokens[] = $tokens[$current]['type'];
             }
@@ -94,14 +97,25 @@ class BlankLineBeforeReturnSniff implements Sniff
             || $prevLineTokens[0] === 'T_COLON')
         ) {
             return;
-        } else if (count($prevLineTokens) > 0) {
-            $phpcsFile->addError(
-                'Missing blank line before return statement',
-                $stackPtr,
-                'Invalid'
-            );
         }
 
-        return;
+        if (count($prevLineTokens) > 0) {
+            $fix = $phpcsFile->addFixableError(
+                'Missing blank line before return statement',
+                $stackPtr,
+                'MissedBlankLineBeforeReturn'
+            );
+
+            if ($fix === true) {
+                $phpcsFile->fixer->beginChangeset();
+                $i = 1;
+                while ($tokens[$stackPtr-$i]['type'] === 'T_WHITESPACE') {
+                    $i++;
+                }
+
+                $phpcsFile->fixer->addNewline($stackPtr-$i);
+                $phpcsFile->fixer->endChangeset();
+            }
+        }
     }
 }

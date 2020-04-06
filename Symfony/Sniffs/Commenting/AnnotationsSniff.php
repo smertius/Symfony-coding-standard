@@ -18,7 +18,7 @@ use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
 
 /**
- * Checks whether annotations of a different type are seperated with newlines.
+ * Checks whether annotations of a different type are separated with newlines.
  *
  * @category PHP
  * @package  Symfony-coding-standard
@@ -28,11 +28,12 @@ use PHP_CodeSniffer\Sniffs\Sniff;
  */
 class AnnotationsSniff implements Sniff
 {
-
-    private static $pattern = '/^@([^\\\(]+).*$/i';
+    const PATTERN = '/^@([^\\\(]+).*$/i';
 
     /**
      * Registers the tokens that this sniff wants to listen for.
+     *
+     * @return array
      */
     public function register()
     {
@@ -45,11 +46,9 @@ class AnnotationsSniff implements Sniff
      * Called when one of the token types that this sniff is listening for
      * is found.
      *
-     * @param \PHP_CodeSniffer\Files\File $phpcsFile The PHP_CodeSniffer file where the
-     *                                               token was found.
-     * @param int                         $stackPtr  The position in the PHP_CodeSniffer
-     *                                               file's token stack where the token
-     *                                               was found.
+     * @param File $phpcsFile The file where the token was found.
+     * @param int  $stackPtr  The position of the current token
+     *                        in the stack passed in $tokens.
      *
      * @return void|int Optionally returns a stack pointer. The sniff will not be
      *                  called again on the current file until the returned stack
@@ -61,16 +60,50 @@ class AnnotationsSniff implements Sniff
         $tokens = $phpcsFile->getTokens();
         $closer = $phpcsFile->findNext(T_DOC_COMMENT_CLOSE_TAG, $stackPtr);
 
-        if (false !== $next = $phpcsFile->findNext($this->register(), $stackPtr + 1, $closer)) {
-            $first = preg_replace(self::$pattern, '$1', $tokens[$stackPtr]['content']);
-            $second = preg_replace(self::$pattern, '$1', $tokens[$next]['content']);
+        if (false !== $next = $phpcsFile->findNext(
+            $this->register(),
+            $stackPtr + 1,
+            $closer
+        )
+        ) {
+            $first = preg_replace(
+                self::PATTERN,
+                '$1',
+                $tokens[$stackPtr]['content']
+            );
+            $second = preg_replace(
+                self::PATTERN,
+                '$1',
+                $tokens[$next]['content']
+            );
 
-            if ($first !== $second && $tokens[$stackPtr]['line'] + 2 > $tokens[$next]['line']) {
-                $phpcsFile->addError(
-                    'Group annotations together so that annotations of the same type immediately follow each other, and annotations of a different type are separated by a single blank line',
+            $stackPtrLine = $tokens[$stackPtr]['line'];
+            $nextLine = $tokens[$next]['line'];
+
+            if ($first !== $second && $stackPtrLine + 2 > $nextLine) {
+                $error = 'Group annotations together ';
+                $error .= 'so that annotations of the same type ';
+                $error .= 'immediately follow each other, and annotations ';
+                $error .= 'of a different type are separated ';
+                $error .= 'by a single blank line';
+
+                $fixable = $phpcsFile->addFixableError(
+                    $error,
                     $stackPtr,
                     'Invalid'
                 );
+
+                if (true === $fixable) {
+                    $indentPtr = $phpcsFile->findFirstOnLine(
+                        T_DOC_COMMENT_WHITESPACE,
+                        $next
+                    );
+                    $indentStr = $phpcsFile->getTokensAsString($indentPtr, 1);
+                    $content   = "\n{$indentStr}*";
+                    $phpcsFile->fixer->beginChangeset();
+                    $phpcsFile->fixer->addContentBefore($next - 1, $content);
+                    $phpcsFile->fixer->endChangeset();
+                }
             }
         }
     }
